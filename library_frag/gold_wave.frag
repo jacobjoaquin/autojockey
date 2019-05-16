@@ -56,13 +56,16 @@ void main()
   phase = fract(phase);
   vec2 st = gl_FragCoord.xy / u_resolution;
   vec2 sto = st;
+
+  float xMod = sin(u_time * 0.021 * TAU);
+  xMod = map(xMod, -1.0, 1.0, 0.5, 2.0);
+  st.y *= xMod;
+
   // st = rotate2d((sin(u_time * 0.2) * 4.0) * (st.y - 0.5) * 2.0) * st;
   st = rotate2d(32.0 / 256.0 * TAU) * st;
   st.x += 0.25;
   st = rotate2d(st.y * -2.3) * st;
 
-  // st.x += 0.4;
-  // st.y += -0.1;
 
   // Grid
   vec2 t = st;
