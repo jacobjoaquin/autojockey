@@ -56,13 +56,9 @@ void main()
   phase = fract(phase);
   vec2 st = gl_FragCoord.xy / u_resolution;
   vec2 sto = st;
-  // st = rotate2d((sin(u_time * 0.2) * 4.0) * (st.y - 0.5) * 2.0) * st;
-  // st = rotate2d(32.0 / 256.0 * TAU) * st;
-  // st.x += 0.25;
-  // st = rotate2d(st.y * -2.3) * st;
-
-  // st.x += 0.4;
-  // st.y += -0.1;
+  float rMod = sin(u_time * 0.083 * TAU);
+  rMod = map(rMod, -1.0, 1.0, 0.0, 32.0);
+  st = rotate2d(rMod / 256.0 * TAU) * st;
 
 
 
@@ -93,7 +89,7 @@ void main()
 
   vec3 black = vec3(0.0);
   float nStripesFreq0 = 1.0;
-  float nStripesFreq1 = 8.0;
+  float nStripesFreq1 = 4.0;
   vec3 c2 = vec3(1.0, 0.5, 0);
   float mSrc= sin(nStripesFreq0 * (16.0 * phase + t.x) * TAU) * 0.5 + 0.5;
   vec3 c3 = mix(c1, c1, mSrc);
@@ -102,8 +98,7 @@ void main()
   mSrc2 = step(0.5, mSrc2);
   float gradient = 1.0 - st.y * 1.0;
   vec3 c5 = mix(c4 * gradient, black, mSrc2);
-  // vec3 o = vec3(mix(c5 * gradient, c3, clamp(g, 0.0, 1.0)));
-  // vec3 o = vec3(mix(black, c1 * gradient * 0.8, g));
+
   vec3 o = vec3(mix(c2, c1, g));
 
   vec3 cMixOut = mix(o, black, st.y);
@@ -114,18 +109,12 @@ void main()
   // sine = map(sine, -1.0, 1.0, 0.0, 0.1);
   white *= clamp(1.0 - distance(sto, vec2(1.5, 0.5)) * 0.5, 0.0, 1.0);
   float r2 = fract(random(ceil(t * 512.0)) + 2.0 * phase);
-  // r2 = floor(r2 * 8.0) / 8.0;
   r2 *= 1.2;
   vec3 c7 = vec3(255, 104, 205) / 255.0;
   vec3 c6 = vec3(2.0, 0.5, 2.0);
   cMixOut = c7 * (1.0 - gradient * 1.0) * r2 * (1.0 - g);
   cMixOut += gradient * c5 * g * 1.0;
-  // cMixOut = floor(cMixOut * 8.0) / 8.0;
   cMixOut *= 2.0;
-
-  // vec3 o = vec3(mix(c0, c1, g));
-  // vec3 o = vec3(g);
-  // o *= gradient;
 
   gl_FragColor = vec4(cMixOut, 1.0);
 }
