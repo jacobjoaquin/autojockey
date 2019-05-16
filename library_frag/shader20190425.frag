@@ -18,16 +18,16 @@ uniform bool u_isProcessing;
 // const vec3 c1 = vec3(0.0);
 
 // Pornj
-// const vec3 c0 = vec3(255.0, 148.0, 0.0) / 255.0;
-// const vec3 c1 = vec3(255.0, 0.0, 210.0) / 255.0;
+const vec3 c0 = vec3(255.0, 148.0, 0.0) / 255.0;
+const vec3 c1 = vec3(255.0, 0.0, 210.0) / 255.0;
 
 // Commodore 64 Blues
 // const vec3 c0 = vec3(80.0, 69.0, 155.0) / 256.0;
 // const vec3 c1 = vec3(126.0, 145.0, 203.0) / 256.0;
 
 
-const vec3 c0 = vec3(242.0, 215.0, 186.0) / 255.0;
-const vec3 c1 = vec3(112.0, 2.0, 137.0) / 255.0;
+// const vec3 c0 = vec3(242.0, 215.0, 186.0) / 255.0;
+// const vec3 c1 = vec3(112.0, 2.0, 137.0) / 255.0;
 
 // source: https://thebookofshaders.com/05/
 float plot(vec2 st, float pct)
@@ -70,14 +70,16 @@ void main()
   vec2 st = gl_FragCoord.xy / u_resolution;
   vec2 t = st;
 
-  float sine = sin(phase * TAU);
+  float sine = sin(u_time * 0.027 * TAU);
 
-  t.x -= 0.5;
+  float txMod = sin(u_time * 0.028 * TAU);
+  txMod = map(txMod, -1.0, 1.0, 0.1, 0.9);
+  t.x -= txMod;
   // t.y -= 0.02;
   // t.x -= 1.0 / 6.0;
   t.x *= 1.0;
   float rAmount = 0.01;
-  // t = rotate2d(map(sine, -1.0, 1.0, -rAmount, rAmount) * TAU) * t;
+  t = rotate2d(map(sine, -1.0, 1.0, -rAmount, rAmount) * TAU) * t;
   // t = rotate2d(-0.005 * TAU) * t;
 
   float horizon = 0.5;
@@ -90,21 +92,20 @@ void main()
 
   float mask = step(0.5, st.y);
   float sy = mask * (1.0 - t.y) + (1.0 - mask) * (t.y);
-  // x += (sin((8.0 * sy + 2.0 * phase) * TAU) * 0.5 + 0.5) * 0.05;
-  // y += t.y;
-  x += t.x * 0.6;
+  float waveMod = sin(u_time * 0.012 * TAU);
+  waveMod = map(waveMod, -1.0, 1.0, -0.2, 0.2);
+  float phaseMod = sin(u_time * 0.032 * TAU);
+  phaseMod = map(phaseMod, -1.0, 1.0, 1.0, 8.0);
+  x += (sin((phaseMod * sy + 4.0 * phase) * TAU) * 0.5 + 0.5) * waveMod;
 
-  // x = fract(x + step(0.5, t.y) * 0.5);
-  x = fract(x + 2.0 * phase);
-  y = fract(y + 1.0 * phase);
+  x = fract(x + step(0.5, t.y) * 0.5);
+  x = fract(x + sin(u_time * 0.311) * 2.0);
+  y = fract(y + 4.0 * phase);
   x = step(0.5, x);
   y = step(0.5, y);
-  // x = smoothstep(0.45, 0.55, x);
-  // y = smoothstep(0.45, 0.55, y);
 
-  // float yStep = 2.0;
-  // y = floor(y * yStep) / yStep;
-  float v = mod(x + y, 2.0);
+  float v = int(x) + int(y) == 1 ? 1.0 : 0.0;
+
   // v *= step(1.0 - horizon, 1.0 - t.y);
 
   vec3 o = vec3(mix(c0, c1, v));
@@ -113,6 +114,8 @@ void main()
   o = o * top * map(t.y, 0.5, 1.0, 0.0, 3.0) +
   o * bottom * map(t.y, 0.0, 0.5, 3.0, 0.0);
 
+  float stripe = step(0.5, x);
+  o *= stripe;
   // o *= mask + (1.0 - mask) * o;
   // o *= 1.0 - mask;
 
