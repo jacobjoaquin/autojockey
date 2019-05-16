@@ -26,6 +26,7 @@ float map(float v, float x0, float x1, float y0, float y1)
 
 void main() {
   vec2 st = gl_FragCoord.xy / u_resolution.xy;
+  vec2 st2 = st;
   float phase = fract(u_time * 0.25);
 
   st -= 0.5;
@@ -49,7 +50,7 @@ void main() {
   bandWidth = map(bandWidth, -1.0, 1.0, 0.05, 0.75);
   float band = step(bandWidth, fract(v + bandWidth));
 
-  vec3 color = mix(c0, c1, v);
+  vec3 color = mix(c0, c1, fract(v + st2.y + phase));
   color *= band;
 
   gl_FragColor = vec4(color, 1.0);
