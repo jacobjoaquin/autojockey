@@ -46,10 +46,6 @@ mat2 rotate2d(float angle)
 {
   return mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
 }
-// source: https://thebookofshaders.com/10/
-float random(vec2 st) {
-    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
-}
 
 float concentricCircles(in vec2 p0, in vec2 p1, in float scale)
 {
@@ -78,36 +74,61 @@ void main()
   }
   phase = fract(phase);
   vec2 st = gl_FragCoord.xy / u_resolution;
-  st = rotate2d(0.5 * TAU) * st;
-  st.y += 1.0;
+  // st -= 0.5;
+  // st = rotate2d(phase * TAU) * st;
 
   // Grid translation
-  float nRows = 4.0;
+  float nRows = 9.0;
   float nColumns = nRows;
   vec2 t = st;
-  t -= 0.5;
-  // t.x = pow(128.0, st.x);
-  t.x *= nRows;
-  t.y *= nColumns;
+  // t -= 0.5;
+  t *= nRows;
+  // t.x *= nRows * 2.0;
 
-  vec2 tPre = t;
+  // t.y -= 1.0;
+  float stepY = step(0.5, st.y);
+  // float y = (1.0 - stepY) * st.y + stepY * (1.0 - st.y);
+  // t.y = y;
+  // t.x = t.x / map(y, 0.0, 1.0, 1.0, 1.0 / nColumns);
+  // t.y = pow(nColumns * 1.0, t.y);
   vec2 tIndex = floor(t);     // Create indices
-  t.y += 1.0 * phase;
-  // t = rotate2d(0.01 * random(t) * TAU) * t;
-  float sine = sin(1.0 * phase * TAU);
-  t = rotate2d(sine * 0.0125 * random(t) * TAU) * t;
   t = fract(t);
 
   // Concentric circles
-  float v = t.x + t.y;
+  vec2 offset = vec2(0.5);
+  // vec2 tIndexMod = tIndexMod +
+
+  // float ccScale0 = 3.0 - distance(floor(st * nRows) / (nRows - 1.0), offset) * 36.0;
+  float sine = sin(phase * TAU);
+  float m = sine * 0.5 + 0.5;
+  float ccScale0 = distance(st, offset) * map(m, 0.0, 1.0, 64.0, 128.0);
+  float ccScale1 = distance(st, offset) * 1.0;
+
+  float ccScale = ccScale0 + ccScale1;
+  ccScale = fract(ccScale);
+  ccScale = mod(ccScale, 2.0);
+
+
+  float v = concentricCircles(offset, t, ccScale);
+  v += phase;
+  v += tIndex.x / nRows;
+  v += tIndex.y / nColumns;
+
+  // float cc2 = concentricCircles(offset, st, 1.0);
+
   float negate = mod(tIndex.x + tIndex.y, 2.0);
-  v += negate * phase * 2.0;
-  // v = fract(v);
+  // v += negate * 0.5;
+  // v += stepY * 0.5;
+  // v += cc2;
+  // v += (st.y + st.x);
+  v = fract(v);
   v = mod(v, 2.0);
+  v = step(0.5, v);
 
-  float crusherAmount = 4.0;
-  // v = floor(v * crusherAmount) / (crusherAmount - 1.0);
+  vec2 t2 = t * st;
+  // t2 = frac(t2);
+  // v =
 
-  vec3 o = vec3(mix(c0, c10, v));
+  vec3 o = vec3(mix(c10, c9, v));
   gl_FragColor = vec4(o, 1.0);
 }

@@ -1,7 +1,6 @@
-// #ifdef GL_ES
-// precision mediump float;
-// #endif
-//
+#ifdef GL_ES
+precision mediump float;
+#endif
 
 #define TAU 6.283185307179586
 #define PI 3.141592653589793
@@ -27,13 +26,10 @@ const vec3 c4 = vec3(80.0, 69.0, 155.0) / 256.0;
 const vec3 c5 = vec3(126.0, 145.0, 203.0) / 256.0;
 
 
-const vec3 c6 = vec3(255, 217, 188) / 255.0;
+const vec3 c6 = vec3(242.0, 215.0, 186.0) / 255.0;
 const vec3 c7 = vec3(112.0, 2.0, 137.0) / 255.0;
 
-const vec3 c8 = vec3(255.0, 184.0, 0.0) / 255.0;
-const vec3 c9 = vec3(26.0, 17.0, 16.0) / 255.0;
 
-const vec3 c10 = vec3(255.0, 60.0, 0.0) / 255.0;
 
 // source: https://thebookofshaders.com/05/
 float plot(vec2 st, float pct)
@@ -45,10 +41,6 @@ float plot(vec2 st, float pct)
 mat2 rotate2d(float angle)
 {
   return mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
-}
-// source: https://thebookofshaders.com/10/
-float random(vec2 st) {
-    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
 }
 
 float concentricCircles(in vec2 p0, in vec2 p1, in float scale)
@@ -78,36 +70,34 @@ void main()
   }
   phase = fract(phase);
   vec2 st = gl_FragCoord.xy / u_resolution;
-  st = rotate2d(0.5 * TAU) * st;
-  st.y += 1.0;
+
 
   // Grid translation
-  float nRows = 4.0;
-  float nColumns = nRows;
   vec2 t = st;
-  t -= 0.5;
-  // t.x = pow(128.0, st.x);
-  t.x *= nRows;
-  t.y *= nColumns;
-
-  vec2 tPre = t;
-  vec2 tIndex = floor(t);     // Create indices
-  t.y += 1.0 * phase;
-  // t = rotate2d(0.01 * random(t) * TAU) * t;
-  float sine = sin(1.0 * phase * TAU);
-  t = rotate2d(sine * 0.0125 * random(t) * TAU) * t;
+  t.x -= 0.5;
+  // t.y -= 0.5;
+  t.y = pow(32.0, t.y);
+  t.x *= 2.0;
+  t.y *= 1.0;
+  t.x /= (1.0 - st.y) * 1.0;
+  t.x += 0.5;
+  vec2 tFloor = floor(t);  // Create indices
   t = fract(t);
 
+
   // Concentric circles
-  float v = t.x + t.y;
-  float negate = mod(tIndex.x + tIndex.y, 2.0);
-  v += negate * phase * 2.0;
-  // v = fract(v);
-  v = mod(v, 2.0);
+  float v = concentricCircles(vec2(0.5), t, 0.1);
+  float alt = mod(tFloor.x + tFloor.y, 2.0);
+  v += 1.0 * phase + tFloor.y / 24.0;
+  v -= abs(tFloor.x * 0.05);
+  v *= 2.0;
+  v = fract(v);
+  v = sin((v + alt * 0.5) * TAU) * 0.5 + 0.5;
+  v = step(0.5, v);
 
-  float crusherAmount = 4.0;
-  // v = floor(v * crusherAmount) / (crusherAmount - 1.0);
+  // Makes checkerboard
+  // float v = mod(tFloor.x + tFloor.y, 2.0);
 
-  vec3 o = vec3(mix(c0, c10, v));
+  vec3 o = vec3(mix(c0, c3, v));
   gl_FragColor = vec4(o, 1.0);
 }

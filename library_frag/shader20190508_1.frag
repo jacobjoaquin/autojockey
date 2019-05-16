@@ -71,89 +71,48 @@ float map(float v, float x0, float x1, float y0, float y1)
 
 void main()
 {
-  float phase = u_time / 60.0 * 16.0;
+  float phase = u_time / 60.0 * 2.0;
   if (u_isProcessing)
   {
     phase = u_phase;
   }
   phase = fract(phase);
   vec2 st = gl_FragCoord.xy / u_resolution;
-  // st -= 0.75;
-  // st.x -= 0.45;
-  // st.y -= 0.1;
-  // st = rotate2d(phase * TAU) * st;
-  // st = rotate2d(0.0625 * TAU) * st;
   st = rotate2d(0.25 * TAU) * st;
   st.y += 1.0;
 
   // Grid translation
-  float sine2 = sin(phase * TAU) * 0.5 + 0.5;
-  float nRows = 8.0;
-  // nRows *= sine2 * 0.2 + 0.5;
-  float nColumns = nRows * 1.0;
+  float sine2 = sin(0.025 * u_time * TAU);
+  float nRows = map(sine2, -1.0, 1.0, 2.0, 16.0);
+  float nColumns = nRows;
   vec2 t = st;
   t -= 0.5;
-  // t *= 16.0 * t;
-  t.x = pow(4.0, st.x);
+  t.x = pow(2.0, st.x);
   t.x *= nRows;
-  t.y *= nColumns;
+  // t.y *= nColumns;
 
-  // t.y -= 1.0;
-  float stepY = step(0.5, st.y);
-  float y = (1.0 - stepY) * st.y + stepY * (1.0 - st.y);
-  t.y = y;
-  // t.x = t.x / map(y, 0.0, 1.0, 1.0, 1.0 / nColumns);
-  t.y = pow(110.0, y);
   vec2 tPre = t;
   vec2 tIndex = floor(t);     // Create indices
-  t.y += 1.0 * phase;
+  t.y += tIndex.x * phase;
+  // t = rotate2d(0.01 * random(t) * TAU) * t;
+  float sine = sin(st.x + (1.0 * phase) * TAU);
   t = fract(t);
+  // t = rotate2d(sine * 0.25 * random(t) * TAU) * t;
+  t = rotate2d(st.y + st.x + u_time * 0.3 * TAU + random(t) * 0.5) * t;
 
   // Concentric circles
-  vec2 offset = vec2(0.5);
-
-  float sine = sin(phase * TAU);
-  float m = sine * 0.5 + 0.5;
-  float ccScale0 = distance(st, offset) * 2.0;
-  float ccScale1 = distance(st, offset) * 2.0;
-
-  // ccScale0 = fract(ccScale0);
-  // ccScale1 = fract(ccScale1);
-  // ccScale0 = step(0.5, ccScale0);
-  // ccScale1 = step(0.5, ccScale1);
-  // ccScale0 += phase;
-  // ccScale1 += phase;
-
-  float v0 = concentricCircles(offset, st, 3.0);
-  float v1 = concentricCircles(offset, t, 0.5);
-
-  // float v0 = concentricCircles(offset, st, 4.0);
-  // float v1 = concentricCircles(offset, t, 3.0);
-  // v0 = pow(1.0 + cos(phase * TAU) * 0.5 + st.y * 0.5, v0);
-  // v0 = pow(1.0, v0);
-  // v1 = pow(32.0, v1);
-  v0 = fract(v0);
-  v1 = fract(v1);
-  float v = v0 + v1;
-  // v += ccScale0;
-  v += 1.0 * -phase;
-
+  float v = t.x + t.y;
   float negate = mod(tIndex.x + tIndex.y, 2.0);
-  // v += negate * 0.5;
-  // v += stepY * 0.5;
-  v = fract(v);
+  // v += negate * phase * 1.0;
+  // v += negate * 0.125;
+  // v = fract(v);
   v = mod(v, 2.0);
-  // v = step(0.5, v);
 
   float crusherAmount = 4.0;
-  v = floor(v * crusherAmount) / (crusherAmount - 1.0);
-  // v = sin(v * TAU) * 0.5 + 0.5;
+  // v = floor(v * crusherAmount) / (crusherAmount - 1.0);
 
-  float sine3 = cos(phase * TAU) * 0.5 + 0.5;
-
-  vec3 cMix0 = mix(c10, c3, fract(st.y * 2.0 + phase));
-  cMix0 = mix(cMix0 * 3.0 * (st.y * 0.5 + 0.5) * (fract(-1.0 * phase + -st.y * 5.0 + sin((phase + st.x * 1.0) * TAU))), c2 * (sine3 * 1.0 + 0.9), t.y);
-
-  vec3 o = vec3(mix(c2, c3, v));
+  vec3 cMix0 = mix(c0, c7, st.x);
+  vec3 cMix1 = mix(c10, c3, st.y);
+  vec3 o = vec3(mix(cMix0, cMix1, v));
   gl_FragColor = vec4(o, 1.0);
 }

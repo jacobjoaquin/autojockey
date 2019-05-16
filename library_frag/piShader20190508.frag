@@ -71,7 +71,7 @@ float map(float v, float x0, float x1, float y0, float y1)
 
 void main()
 {
-  float phase = u_time / 60.0 * 16.0;
+  float phase = u_time / 60.0 * 2.0;
   if (u_isProcessing)
   {
     phase = u_phase;
@@ -79,35 +79,43 @@ void main()
   phase = fract(phase);
   vec2 st = gl_FragCoord.xy / u_resolution;
   st = rotate2d(0.5 * TAU) * st;
-  st.y += 1.0;
+  // st.y += 1.0;
 
   // Grid translation
-  float nRows = 4.0;
+  float sine2 = sin(0.025 * u_time * TAU);
+  float nRows = map(sine2, -1.0, 1.0, 1.0, 12.0);
   float nColumns = nRows;
   vec2 t = st;
-  t -= 0.5;
-  // t.x = pow(128.0, st.x);
+  // t -= 0.5;
+  // t.x = pow(12.0, st.x);
   t.x *= nRows;
   t.y *= nColumns;
 
   vec2 tPre = t;
   vec2 tIndex = floor(t);     // Create indices
-  t.y += 1.0 * phase;
+  t.y += tIndex.x * phase;
   // t = rotate2d(0.01 * random(t) * TAU) * t;
-  float sine = sin(1.0 * phase * TAU);
-  t = rotate2d(sine * 0.0125 * random(t) * TAU) * t;
+  float sine = sin(st.x + (2.0 * phase) * TAU);
   t = fract(t);
+  // t = rotate2d(sine * 0.25 * random(t) * TAU) * t;
+  t = rotate2d(st.y + st.x + u_time * 0.1 * TAU + random(t) * 0.05) * t;
 
   // Concentric circles
   float v = t.x + t.y;
   float negate = mod(tIndex.x + tIndex.y, 2.0);
-  v += negate * phase * 2.0;
+  // v += negate * phase * 1.0;
+  // v += negate * 0.125;
   // v = fract(v);
   v = mod(v, 2.0);
 
-  float crusherAmount = 4.0;
+  float crusherAmount = 1.0;
   // v = floor(v * crusherAmount) / (crusherAmount - 1.0);
 
-  vec3 o = vec3(mix(c0, c10, v));
+  v += random(st + u_time * 0.5);
+  vec3 cMix0 = mix(c0, c7, st.x);
+  vec3 cMix1 = mix(c10, c3, st.y);
+  // vec3 o = vec3(mix(cMix0, cMix1, v));
+  vec3 o = vec3(mix(c1, c2, v));
+  // vec3 o = vec3(v);
   gl_FragColor = vec4(o, 1.0);
 }
