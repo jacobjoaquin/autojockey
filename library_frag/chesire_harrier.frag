@@ -104,7 +104,8 @@ void main()
   x = step(0.5, x);
   y = step(0.5, y);
 
-  float v = int(x) + int(y) == 1 ? 1.0 : 0.0;
+  // float v = int(x) + int(y) == 1 ? 1.0 : 0.0;
+  float v = abs(x - y);
 
   // v *= step(1.0 - horizon, 1.0 - t.y);
 
@@ -116,6 +117,7 @@ void main()
 
   float stripe = step(0.5, x);
   o *= stripe;
+
   // o *= mask + (1.0 - mask) * o;
   // o *= 1.0 - mask;
 
